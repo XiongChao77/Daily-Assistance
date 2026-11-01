@@ -1,0 +1,57 @@
+{
+  "news_categories": [
+    {"id": "wars", "title": "Wars", "min_items": 10, "max_items": 10, "display_items": 4, "focus": "重要战争、停火、军事冲突及其外交和市场影响"},
+    {"id": "politics", "title": "Politics", "min_items": 10, "max_items": 10, "display_items": 4, "focus": "主要国家政治、选举、政策及国际关系"},
+    {"id": "technology", "title": "Technology", "min_items": 10, "max_items": 10, "display_items": 4, "focus": "人工智能、芯片、科技企业、监管和重要产品进展"},
+    {"id": "finance", "title": "Finance news", "min_items": 10, "max_items": 10, "display_items": 4, "focus": "全球宏观经济、央行、企业财报及影响金融市场的事件"}
+  ],
+  "crypto_news": {"title": "Crypto News", "min_items": 10, "max_items": 10, "display_items": 4, "focus": "比特币、以太坊、交易所、监管、链上事件和行业动态；ETF资金流留给ETF板块"},
+  "market_groups": [
+    {"id": "us", "title": "US Markets", "instruments": [
+      {"symbol": "^GSPC", "name": "S&P 500", "precision": 2},
+      {"symbol": "^DJI", "name": "Dow 30", "precision": 2},
+      {"symbol": "^IXIC", "name": "Nasdaq", "precision": 2},
+      {"symbol": "^RUT", "name": "Russell 2000", "precision": 2},
+      {"symbol": "^TNX", "name": "10-Yr Bond", "precision": 3},
+      {"symbol": "^VIX", "name": "VIX", "precision": 2},
+      {"symbol": "GC=F", "name": "Gold", "precision": 2},
+      {"symbol": "BTC-USD", "name": "Bitcoin USD", "precision": 2}
+    ]},
+    {"id": "europe", "title": "Europe Markets", "instruments": [
+      {"symbol": "^STOXX50E", "name": "Euro Stoxx 50", "precision": 2},
+      {"symbol": "^FTSE", "name": "FTSE 100", "precision": 2},
+      {"symbol": "^GDAXI", "name": "DAX", "precision": 2},
+      {"symbol": "^FCHI", "name": "CAC 40", "precision": 2}
+    ]},
+    {"id": "asia", "title": "Asia Markets", "instruments": [
+      {"symbol": "^N225", "name": "Nikkei 225", "precision": 2},
+      {"symbol": "^HSI", "name": "Hang Seng", "precision": 2},
+      {"symbol": "000001.SS", "name": "Shanghai Composite", "precision": 2},
+      {"symbol": "^KS11", "name": "KOSPI", "precision": 2}
+    ]},
+    {"id": "crypto", "title": "Cryptocurrencies", "instruments": [
+      {"symbol": "BTC-USD", "name": "Bitcoin", "precision": 2},
+      {"symbol": "ETH-USD", "name": "Ethereum", "precision": 2},
+      {"symbol": "SOL-USD", "name": "Solana", "precision": 2},
+      {"symbol": "BNB-USD", "name": "BNB", "precision": 2}
+    ]},
+    {"id": "rates", "title": "Rates", "instruments": [
+      {"symbol": "^IRX", "name": "13-Week T-Bill", "precision": 3},
+      {"symbol": "^FVX", "name": "5-Yr Bond", "precision": 3},
+      {"symbol": "^TNX", "name": "10-Yr Bond", "precision": 3},
+      {"symbol": "^TYX", "name": "30-Yr Bond", "precision": 3}
+    ]},
+    {"id": "commodities", "title": "Commodities", "instruments": [
+      {"symbol": "GC=F", "name": "Gold", "precision": 2},
+      {"symbol": "SI=F", "name": "Silver", "precision": 2},
+      {"symbol": "CL=F", "name": "WTI Oil", "precision": 2},
+      {"symbol": "NG=F", "name": "Natural Gas", "precision": 3}
+    ]},
+    {"id": "currencies", "title": "Currencies", "instruments": [
+      {"symbol": "EURUSD=X", "name": "EUR / USD", "precision": 4},
+      {"symbol": "JPY=X", "name": "USD / JPY", "precision": 3},
+      {"symbol": "CNY=X", "name": "USD / CNY", "precision": 4},
+      {"symbol": "GBPUSD=X", "name": "GBP / USD", "precision": 4}
+    ]}
+  ]
+}

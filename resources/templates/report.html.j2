@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Daily · {{ date }}</title>
+  <style>
+    :root { --ink:#182537; --muted:#677488; --line:#dde5ed; --paper:#f4f7fa; --white:#fff; --blue:#1974dc; --teal:#087d6f; --red:#d43d50; --shadow:0 16px 40px rgba(25,49,78,.055); }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body { margin:0; color:var(--ink); background:var(--paper); font:15px/1.65 "Segoe UI","Microsoft YaHei UI",Arial,sans-serif; }
+    a { color:var(--blue); text-decoration:none; }
+    a:hover { text-decoration:underline; }
+    .shell { max-width:1380px; margin:auto; padding:0 32px 80px; }
+    .masthead { background:linear-gradient(115deg,#102947,#173b62 65%,#15536a); color:#fff; }
+    .masthead .shell { padding-top:34px; padding-bottom:30px; }
+    .eyebrow { color:#8cc7ff; text-transform:uppercase; letter-spacing:.18em; font-size:11px; font-weight:800; }
+    h1 { font-size:clamp(32px,5vw,56px); line-height:1.1; letter-spacing:-.04em; margin:12px 0 8px; }
+    .subhead { color:#c7d8e7; margin:0; }
+    .masthead nav { display:flex; flex-wrap:wrap; gap:10px; margin-top:26px; }
+    .masthead nav a { color:#dbeaff; border:1px solid #ffffff36; border-radius:100px; padding:6px 15px; font-size:13px; }
+    .masthead nav a:hover { background:#ffffff1a; text-decoration:none; }
+    section { scroll-margin-top:26px; margin-top:42px; }
+    .section-heading { display:flex; justify-content:space-between; align-items:end; gap:20px; border-bottom:1px solid var(--line); padding-bottom:15px; margin-bottom:20px; }
+    .section-heading h2 { font-size:29px; letter-spacing:-.025em; line-height:1.2; margin:0; }
+    .section-heading p { color:var(--muted); margin:0; font-size:13px; }
+    .news-group { margin-bottom:34px; }
+    .group-title { display:flex; align-items:center; gap:10px; margin:0 0 15px; font-size:18px; }
+    .group-title::before { content:""; display:block; width:5px; height:19px; border-radius:4px; background:var(--blue); }
+    .news-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:15px; }
+    .story, .etf-card, .takeaway, .plans-card { background:var(--white); border:1px solid var(--line); border-radius:16px; box-shadow:var(--shadow); }
+    .generation-warning { margin-top:24px; padding:14px 18px; border:1px solid #f1c979; border-radius:12px; background:#fff8e8; color:#735114; }
+    .generation-warning p { margin:0; }
+    .generation-warning ul { margin:6px 0 0; }
+    .story { padding:23px 25px; }
+    .story[hidden] { display:none; }
+    .story h4 { font-size:18px; line-height:1.4; letter-spacing:-.01em; margin:0 0 12px; }
+    .story p { margin:0 0 12px; }
+    .story .impact { color:#314d68; background:#f1f6fb; border-left:3px solid #90bce7; padding:9px 12px; border-radius:0 8px 8px 0; }
+    .meta { display:flex; gap:10px; align-items:center; flex-wrap:wrap; color:var(--muted); font-size:12px; margin-top:16px; }
+    .meta a { font-weight:650; }
+    .more-row { margin-top:14px; text-align:center; }
+    .more-button, .plan-actions button, .dialog-actions button { border:1px solid #bed5eb; background:#fff; color:var(--blue); border-radius:9px; padding:8px 15px; font:700 13px "Segoe UI","Microsoft YaHei UI",sans-serif; cursor:pointer; }
+    .more-button:hover, .plan-actions button:hover, .dialog-actions button:hover { background:#eef6ff; }
+    .plan-actions button:disabled { opacity:.45; cursor:default; }
+    .market-panel { background:var(--white); border:1px solid var(--line); border-radius:18px; box-shadow:var(--shadow); overflow:hidden; }
+    .market-toolbar { display:flex; align-items:center; gap:16px; flex-wrap:wrap; padding:17px 20px; border-bottom:1px solid var(--line); }
+    .market-toolbar label { font-size:13px; color:var(--muted); font-weight:700; }
+    .market-toolbar select { appearance:none; border:1px solid #bed5eb; border-radius:9px; color:var(--blue); background:#edf6ff; font:700 15px "Segoe UI","Microsoft YaHei UI",sans-serif; padding:9px 34px 9px 12px; cursor:pointer; }
+    .market-toolbar .credit { margin-left:auto; font-size:12px; color:var(--muted); }
+    .market-strip { display:flex; overflow-x:auto; overscroll-behavior-inline:contain; scroll-snap-type:x proximity; }
+    .market-strip[hidden] { display:none; }
+    .market-card { flex:0 0 164px; min-height:150px; padding:17px 13px; border-right:1px solid var(--line); scroll-snap-align:start; }
+    .market-card:last-child { border-right:0; }
+    .market-name { display:block; color:var(--blue); font-size:13px; font-weight:800; line-height:1.2; }
+    .market-price { font-size:20px; font-weight:750; letter-spacing:-.03em; margin-top:8px; line-height:1.15; }
+    .market-change { display:flex; gap:5px; font-weight:750; font-size:12px; margin-top:6px; }
+    .up { color:var(--teal); } .down { color:var(--red); }
+    .spark { width:100%; height:28px; margin-top:8px; }
+    .asof { color:var(--muted); font-size:10px; white-space:nowrap; margin-top:4px; }
+    .unavailable { color:var(--muted); margin-top:19px; }
+    .etf-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+    .etf-card { padding:24px; }
+    .etf-card h3 { font-size:20px; margin:0 0 5px; }
+    .etf-date { color:var(--muted); font-size:12px; }
+    .flow { margin:16px 0; color:#163958; font-size:24px; font-weight:800; letter-spacing:-.025em; }
+    .fund-list { display:flex; flex-wrap:wrap; gap:7px; margin:14px 0 18px; }
+    .fund { background:#eef3f8; border-radius:100px; padding:5px 10px; font-size:12px; }
+    .etf-card p { margin:0; }
+    .takeaway { margin-top:16px; padding:21px 25px; border-left:4px solid var(--blue); }
+    .takeaway strong { display:block; margin-bottom:5px; }
+    .takeaway p { margin:0; }
+    .plans-card { padding:21px 25px; }
+    .plans-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+    .completed-plans { margin-top:18px; border-top:1px solid var(--line); padding-top:14px; }
+    .completed-plans summary { cursor:pointer; color:var(--muted); font-weight:650; }
+    .completed-plans .plans-grid { margin-top:12px; }
+    .plan { border:1px solid var(--line); border-radius:10px; padding:11px 13px; }
+    .plan-title { font-weight:650; }
+    .plan-status { font-size:11px; color:var(--muted); margin-top:3px; }
+    .plan.done { opacity:.58; }
+    .plan.done .plan-title { text-decoration:line-through; }
+    .plan-progress { height:5px; border-radius:5px; background:#e5edf4; overflow:hidden; margin-top:10px; }
+    .plan-progress span { display:block; height:100%; background:var(--teal); }
+    .plan-note { color:var(--muted); font-size:12px; margin:7px 0 0; }
+    .plan-actions { display:flex; gap:7px; flex-wrap:wrap; margin-top:10px; }
+    .plan-actions button { padding:5px 9px; font-size:11px; }
+    .plan-actions .complete { background:#e7f7f2; border-color:#a8dccc; color:var(--teal); }
+    .service-status { color:var(--red); font-size:12px; margin:0 0 10px; min-height:18px; }
+    dialog { border:1px solid var(--line); border-radius:16px; box-shadow:0 25px 80px #18253735; width:min(420px,calc(100vw - 32px)); padding:24px; color:var(--ink); }
+    dialog::backdrop { background:#14243c88; }
+    dialog h3 { margin:0 0 14px; }
+    dialog label { display:block; font-size:13px; font-weight:700; margin:12px 0 5px; }
+    dialog input, dialog textarea { width:100%; border:1px solid #b8c9d8; border-radius:8px; padding:9px; font:inherit; }
+    dialog textarea { min-height:86px; resize:vertical; }
+    .dialog-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:16px; }
+    footer { color:var(--muted); font-size:12px; margin-top:50px; text-align:center; }
+    @media(max-width:800px) { .shell{padding-left:18px;padding-right:18px;} .news-grid,.etf-grid{grid-template-columns:1fr;} .plans-grid{grid-template-columns:repeat(2,minmax(0,1fr));} .section-heading{align-items:start;flex-direction:column;} }
+    @media(max-width:520px) { .plans-grid{grid-template-columns:1fr;} .story,.etf-card{padding:19px;} .market-card{flex-basis:180px;} }
+  </style>
+</head>
+<body>
+  <header class="masthead">
+    <div class="shell">
+      <div class="eyebrow">Daily intelligence / 每日简报</div>
+      <h1>Daily · {{ date }}</h1>
+      <p class="subhead">新闻、全球市场与数字资产 · 生成于 {{ generated_at }}（北京时间）</p>
+      <nav aria-label="报告目录">
+        <a href="#plans">Plans</a><a href="#news">News</a><a href="#markets">Finance market</a><a href="#crypto">Crypto News</a><a href="#etf">BTC &amp; ETH ETF</a>
+      </nav>
+    </div>
+  </header>
+  <main class="shell">
+    {% if generation_errors %}<aside class="generation-warning" role="status"><p>部分内容暂未生成，程序会在下次运行时继续补齐。</p><ul>{% for error in generation_errors %}<li>{{ error.message }}</li>{% endfor %}</ul></aside>{% endif %}
+    {% macro plan_card(plan) -%}
+    <div class="plan {% if plan.done %}done{% endif %}" data-plan-id="{{ plan.id }}"><div class="plan-title">{{ plan.title }}</div><div class="plan-status">{{ plan.status }}{% if plan.due %} · 截止 {{ plan.due }}{% endif %} · {{ plan.source }}</div><div class="plan-progress"><span style="width:{{ plan.progress }}%"></span></div><p class="plan-note">{{ plan.note }}</p><div class="plan-actions"><button type="button" class="complete" data-action="complete" {% if plan.done %}disabled{% endif %}>{{ '已完成' if plan.done else '完成' }}</button><button type="button" data-action="progress" {% if plan.done %}disabled{% endif %}>更新进度</button></div></div>
+    {%- endmacro %}
+    <section id="plans">
+      <div class="section-heading"><h2>Plans</h2><p>今日计划提醒</p></div>
+      {% set completed_count = plans|selectattr('done')|list|length %}
+      <div class="plans-card"><div id="plan-service-status" class="service-status" role="status" aria-live="polite"></div>
+        <div class="plans-grid" id="pending-plans-grid">{% for plan in plans if not plan.done %}{{ plan_card(plan) }}{% endfor %}</div>
+        <p id="no-pending-plans" {% if plans|length > completed_count %}hidden{% endif %}>暂无待办事项。</p>
+        <details class="completed-plans" id="completed-plans" {% if not completed_count %}hidden{% endif %}>
+          <summary>已完成（<span id="completed-count">{{ completed_count }}</span>）</summary>
+          <div class="plans-grid" id="completed-plans-grid">{% for plan in plans if plan.done %}{{ plan_card(plan) }}{% endfor %}</div>
+        </details>
+      </div>
+    </section>
+    <section id="news">
+      <div class="section-heading"><h2>News</h2><p>全球焦点与金融动态</p></div>
+      {% for category in news %}
+      <div class="news-group" id="news-{{ category.id }}">
+        <h3 class="group-title">{{ category.title }}</h3>
+        <div class="news-grid">
+          {% for item in category['items'] %}
+          <article class="story" {% if loop.index > category.display_items %}data-extra="{{ category.id }}" hidden{% endif %}>
+            <h4>{{ item.title }}</h4>
+            <p>{{ item.body }}</p>
+            {% if item.impact %}<p class="impact">{{ item.impact }}</p>{% endif %}
+            <div class="meta"><span>{{ item.published_at }}</span>{% if item.source_url %}<a href="{{ item.source_url }}" target="_blank" rel="noopener noreferrer">{{ item.source_name or '来源' }} ↗</a>{% endif %}</div>
+          </article>
+          {% endfor %}
+        </div>
+        {% if category['items']|length > category.display_items %}<div class="more-row"><button type="button" class="more-button" data-more="{{ category.id }}" data-count="{{ category['items']|length - category.display_items }}" aria-expanded="false">More · {{ category['items']|length - category.display_items }}</button></div>{% endif %}
+      </div>
+      {% endfor %}
+    </section>
+
+    <section id="markets">
+      <div class="section-heading"><h2>Finance market</h2><p>价格 · 涨跌额 · 涨跌幅</p></div>
+      <div class="market-panel">
+        <div class="market-toolbar">
+          <label for="market-select">Market</label>
+          <select id="market-select" aria-label="选择市场分组">
+            {% for group in markets %}<option value="{{ group.id }}">{{ group.title }}</option>{% endfor %}
+          </select>
+          <span class="credit">数据：<a href="https://finance.yahoo.com/markets/" target="_blank" rel="noopener noreferrer">Yahoo Finance ↗</a> · 以标的时间戳为准</span>
+        </div>
+        {% for group in markets %}
+        <div class="market-strip" data-market-group="{{ group.id }}" {% if not loop.first %}hidden{% endif %}>
+          {% for item in group.instruments %}
+          <div class="market-card">
+            <a class="market-name" href="{{ item.url }}" target="_blank" rel="noopener noreferrer">{{ item.name }}</a>
+            {% if item.available %}
+            <div class="market-price">{{ item.price_label }}</div>
+            <div class="market-change {{ item.direction }}"><span>{{ item.change_label }}</span><span>{{ item.percent_label }}</span></div>
+            {% if item.points %}<svg class="spark {{ item.direction }}" viewBox="0 0 100 26" preserveAspectRatio="none" role="img" aria-label="最近五个交易日走势"><polyline points="{{ item.points }}" fill="none" stroke="currentColor" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"></polyline></svg>{% endif %}
+            <div class="asof">{{ item.as_of }}</div>
+            {% else %}<div class="unavailable">报价暂不可用</div>{% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section id="crypto">
+      <div class="section-heading"><h2>Crypto News</h2><p>数字资产重要进展</p></div>
+      <div class="news-grid">
+        {% for item in crypto_news %}
+        <article class="story" {% if loop.index > crypto_display_items %}data-extra="crypto-news" hidden{% endif %}>
+          <h4>{{ item.title }}</h4><p>{{ item.body }}</p>
+          {% if item.impact %}<p class="impact">{{ item.impact }}</p>{% endif %}
+          <div class="meta"><span>{{ item.published_at }}</span>{% if item.source_url %}<a href="{{ item.source_url }}" target="_blank" rel="noopener noreferrer">{{ item.source_name or '来源' }} ↗</a>{% endif %}</div>
+        </article>
+        {% endfor %}
+      </div>
+      {% if crypto_news|length > crypto_display_items %}<div class="more-row"><button type="button" class="more-button" data-more="crypto-news" data-count="{{ crypto_news|length - crypto_display_items }}" aria-expanded="false">More · {{ crypto_news|length - crypto_display_items }}</button></div>{% endif %}
+    </section>
+
+    <section id="etf">
+      <div class="section-heading"><h2>Bitcoin &amp; Ethereum ETF</h2><p>资金流向与行情分析</p></div>
+      <div class="etf-grid">
+        {% for key, title in [('btc','Bitcoin ETF'), ('eth','Ethereum ETF')] %}
+        {% set asset = etf[key] %}
+        <article class="etf-card">
+          <h3>{{ title }}</h3><div class="etf-date">资金流交易日 · {{ asset.flow_date }}</div>
+          <div class="flow">{{ asset.net_flow }}</div>
+          {% if asset.funds %}<div class="fund-list">{% for fund in asset.funds %}<span class="fund">{{ fund.name }} · {{ fund.flow }}</span>{% endfor %}</div>{% endif %}
+          <p>{{ asset.analysis }}</p>
+          {% if asset.source_url %}<div class="meta"><a href="{{ asset.source_url }}" target="_blank" rel="noopener noreferrer">{{ asset.source_name or 'ETF 数据来源' }} ↗</a></div>{% endif %}
+        </article>
+        {% endfor %}
+      </div>
+      {% if etf.market_takeaway %}<div class="takeaway"><strong>Market takeaway</strong><p>{{ etf.market_takeaway }}</p></div>{% endif %}
+    </section>
+
+    <dialog id="progress-dialog"><h3>更新计划进度</h3><div id="progress-title"></div><label for="progress-value">完成进度（0–100%）</label><input id="progress-value" type="number" min="0" max="100" step="1"><label for="progress-note">进展备注</label><textarea id="progress-note" maxlength="500" placeholder="记录下一步或已完成的部分"></textarea><div class="dialog-actions"><button type="button" id="progress-cancel">取消</button><button type="button" id="progress-save">保存进度</button></div></dialog>
+    <footer>Daily · {{ generated_at }} · 行情按各标的 Yahoo Finance 时间戳展示</footer>
+  </main>
+  <script>
+    const select = document.getElementById('market-select');
+    select.addEventListener('change', () => {
+      document.querySelectorAll('[data-market-group]').forEach(group => { group.hidden = group.dataset.marketGroup !== select.value; });
+    });
+    document.querySelectorAll('[data-more]').forEach(button => button.addEventListener('click', () => {
+      const expanded = button.getAttribute('aria-expanded') === 'true';
+      document.querySelectorAll('.story[data-extra]').forEach(story => {
+        if (story.dataset.extra === button.dataset.more) story.hidden = expanded;
+      });
+      button.setAttribute('aria-expanded', String(!expanded));
+      button.textContent = expanded ? `More · ${button.dataset.count}` : '收起';
+    }));
+
+    const planApi = {{ plan_service_url|tojson }};
+    const planToken = {{ plan_service_token|tojson }};
+    const planStatus = document.getElementById('plan-service-status');
+    const pendingPlans = document.getElementById('pending-plans-grid');
+    const completedPlans = document.getElementById('completed-plans-grid');
+    const completedDetails = document.getElementById('completed-plans');
+    const dialog = document.getElementById('progress-dialog');
+    let editingPlanId = null;
+    function updatePlanGroups() {
+      const count = completedPlans.querySelectorAll('[data-plan-id]').length;
+      document.getElementById('completed-count').textContent = String(count);
+      completedDetails.hidden = count === 0;
+      document.getElementById('no-pending-plans').hidden = pendingPlans.querySelector('[data-plan-id]') !== null;
+    }
+    function updatePlanCard(plan) {
+      const card = [...document.querySelectorAll('[data-plan-id]')].find(node => node.dataset.planId === plan.id);
+      if (!card) return;
+      card.classList.toggle('done', plan.done);
+      card.querySelector('.plan-status').textContent = `${plan.status}${plan.due ? ' · 截止 ' + plan.due : ''} · ${plan.source}`;
+      card.querySelector('.plan-progress span').style.width = `${plan.progress}%`;
+      card.querySelector('.plan-note').textContent = plan.note || '';
+      card.querySelectorAll('button').forEach(button => { button.disabled = plan.done; });
+      card.querySelector('[data-action="complete"]').textContent = plan.done ? '已完成' : '完成';
+      card.dataset.progress = String(plan.progress);
+      card.dataset.note = plan.note || '';
+      const destination = plan.done ? completedPlans : pendingPlans;
+      if (card.parentElement !== destination) destination.append(card);
+      updatePlanGroups();
+    }
+    async function planRequest(path, options = {}) {
+      const response = await fetch(planApi + path, {
+        ...options,
+        headers: { 'X-Plan-Token': planToken, 'Content-Type': 'application/json' },
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || '计划更新失败');
+      return data;
+    }
+    document.querySelectorAll('[data-plan-id]').forEach(card => {
+      card.dataset.progress = card.querySelector('.plan-progress span').style.width.replace('%', '') || '0';
+      card.dataset.note = card.querySelector('.plan-note').textContent;
+      card.querySelector('[data-action="complete"]').addEventListener('click', async () => {
+        if (!confirm(`确认完成「${card.querySelector('.plan-title').textContent}」？`)) return;
+        try {
+          const result = await planRequest('/api/plans/' + card.dataset.planId, { method: 'POST', body: JSON.stringify({ action: 'complete' }) });
+          updatePlanCard(result.plan); planStatus.textContent = '';
+        } catch (error) { planStatus.textContent = error.message + '。请确认本机计划服务正在运行。'; }
+      });
+      card.querySelector('[data-action="progress"]').addEventListener('click', () => {
+        editingPlanId = card.dataset.planId;
+        document.getElementById('progress-title').textContent = card.querySelector('.plan-title').textContent;
+        document.getElementById('progress-value').value = card.dataset.progress;
+        document.getElementById('progress-note').value = card.dataset.note;
+        dialog.showModal();
+      });
+    });
+    document.getElementById('progress-cancel').addEventListener('click', () => dialog.close());
+    document.getElementById('progress-save').addEventListener('click', async () => {
+      const progress = Number(document.getElementById('progress-value').value);
+      const note = document.getElementById('progress-note').value;
+      if (!Number.isInteger(progress) || progress < 0 || progress > 100) { planStatus.textContent = '进度请输入 0–100 的整数。'; return; }
+      try {
+        const result = await planRequest('/api/plans/' + editingPlanId, { method: 'POST', body: JSON.stringify({ action: 'progress', progress, note }) });
+        updatePlanCard(result.plan); planStatus.textContent = ''; dialog.close();
+      } catch (error) { planStatus.textContent = error.message + '。请确认本机计划服务正在运行。'; dialog.close(); }
+    });
+    planRequest('/api/plans').then(data => data.plans.forEach(updatePlanCard)).catch(() => { planStatus.textContent = '计划服务未连接。完成与进度按钮需要本机计划服务运行。'; });
+  </script>
+</body>
+</html>
