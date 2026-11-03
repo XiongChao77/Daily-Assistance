@@ -10,6 +10,26 @@ import reporting
 
 
 class DailyTests(unittest.TestCase):
+    def test_added_plan_persists_and_can_be_updated(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            created = plan_store.add_plan("准备演讲", "2026-11-05", root)
+            self.assertEqual(created["title"], "准备演讲")
+            self.assertEqual(created["due"], "2026-11-05")
+            self.assertIn(created["id"], (root / "data" / "plans" / "custom.md").read_text(encoding="utf-8"))
+            loaded = plan_store.read_plans(date(2026, 11, 1), root)
+            self.assertEqual(loaded[0]["id"], created["id"])
+            plan_store.update_plan(created["id"], "complete", root)
+            self.assertEqual(plan_store.read_plans(date(2026, 11, 1), root), [])
+
+    def test_added_plan_rejects_invalid_input(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for title, due in [("", None), ("bad\n# injected", None), ("valid", "2026-02-30")]:
+                with self.assertRaises(ValueError):
+                    plan_store.add_plan(title, due, root)
+            self.assertFalse((root / "data" / "plans" / "custom.md").exists())
+
     def test_completed_plan_is_excluded_from_future_reminders(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -36,6 +56,8 @@ class DailyTests(unittest.TestCase):
         self.assertEqual(html.count('data-extra="crypto-news"'), 6)
         self.assertIn('data-action="complete"', html)
         self.assertIn('data-action="progress"', html)
+        self.assertIn('id="add-plan-button"', html)
+        self.assertIn('id="add-plan-dialog"', html)
         self.assertLess(html.index('<section id="plans">'), html.index('<section id="news">'))
         self.assertLess(html.index('href="#plans"'), html.index('href="#news"'))
         self.assertIn('<title>Daily · 2026-11-01</title>', html)

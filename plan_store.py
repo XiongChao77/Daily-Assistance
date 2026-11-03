@@ -170,6 +170,36 @@ def read_plans(today: date, root: Path = ROOT, include_done: bool = False) -> li
     return plans
 
 
+def add_plan(title: str, due: str | None = None, root: Path = ROOT) -> dict:
+    if not isinstance(title, str):
+        raise ValueError("计划名称不能为空")
+    title = title.strip()
+    if not title or len(title) > 200 or any(char in title for char in "\r\n<>"):
+        raise ValueError("计划名称须为 1–200 个字符，且不能包含换行或尖括号")
+    if due in (None, ""):
+        due_date = None
+    elif isinstance(due, str):
+        try:
+            due_date = date.fromisoformat(due)
+        except ValueError as exc:
+            raise ValueError("截止日期格式须为 YYYY-MM-DD") from exc
+        if due_date.isoformat() != due:
+            raise ValueError("截止日期格式须为 YYYY-MM-DD")
+    else:
+        raise ValueError("截止日期格式须为 YYYY-MM-DD")
+
+    with state_lock(root):
+        path = plans_directory(root) / "custom.md"
+        existing = path.read_text(encoding="utf-8") if path.exists() else ""
+        item_id = uuid.uuid4().hex[:16]
+        line = f"- [ ] {title}"
+        if due_date:
+            line += f" 截止: {due_date.isoformat()}"
+        line += f" <!-- plan-id: {item_id} -->\n"
+        atomic_text(path, existing.rstrip("\n") + ("\n" if existing else "") + line)
+        return next(item for item in read_plans(date.today(), root, include_done=True) if item["id"] == item_id)
+
+
 def update_plan(item_id: str, action: str, root: Path = ROOT, progress: int | None = None, note: str | None = None) -> dict:
     with state_lock(root):
         current = {item["id"]: item for item in read_plans(date.today(), root, include_done=True)}

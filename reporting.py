@@ -28,7 +28,6 @@ PROMPTS = Environment(loader=FileSystemLoader(RESOURCES_DIR / "prompts"), autoes
 HTML = Environment(loader=FileSystemLoader(RESOURCES_DIR / "templates"), autoescape=select_autoescape(["html", "j2"]))
 MODEL_TIMEOUT = (10, 180)
 MODEL_RETRIES = 3
-MODEL_WORKERS = 2
 MODEL_METRICS: list[dict] = []
 MODEL_METRICS_LOCK = threading.Lock()
 
@@ -403,15 +402,10 @@ def build_report_data(generated_at: datetime, plans: list[dict], draft_path: Pat
                 generation_errors["etf"] = "BTC／ETH ETF 生成失败，将在下次运行时重试。"
             return empty_etf()
 
-    jobs = {}
-    with ThreadPoolExecutor(max_workers=MODEL_WORKERS, thread_name_prefix="ai-section") as pool:
-        for category in config["news_categories"]:
-            jobs[pool.submit(generate_section, category, category["id"])] = category["id"]
-        crypto_category = config["crypto_news"]
-        jobs[pool.submit(generate_section, crypto_category, "crypto_news", True)] = "crypto_news"
-        jobs[pool.submit(generate_etf_section)] = "etf"
-        for future in as_completed(jobs):
-            results[jobs[future]] = future.result()
+    for category in config["news_categories"]:
+        results[category["id"]] = generate_section(category, category["id"])
+    results["crypto_news"] = generate_section(config["crypto_news"], "crypto_news", True)
+    results["etf"] = generate_etf_section()
 
     news = [{**category, "items": results.get(category["id"], [])} for category in config["news_categories"]]
     crypto = results.get("crypto_news", [])

@@ -68,7 +68,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self) -> None:
         path = urlsplit(self.path).path
-        if not path.startswith("/api/plans/"):
+        if path != "/api/plans" and not path.startswith("/api/plans/"):
             self.send_json(404, {"error": "不存在的路径"})
             return
         if not self.authorized():
@@ -78,12 +78,17 @@ class Handler(BaseHTTPRequestHandler):
             if not 0 < size <= 4096:
                 raise ValueError("请求体大小无效")
             body = json.loads(self.rfile.read(size))
+            if not isinstance(body, dict):
+                raise ValueError("请求内容须为对象")
             with MUTATION_LOCK:
-                updated = plan_store.update_plan(
-                    path.removeprefix("/api/plans/"), body.get("action", ""),
-                    progress=body.get("progress"), note=body.get("note"),
-                )
-            self.send_json(200, {"plan": updated})
+                if path == "/api/plans":
+                    updated = plan_store.add_plan(body.get("title"), body.get("due"))
+                else:
+                    updated = plan_store.update_plan(
+                        path.removeprefix("/api/plans/"), body.get("action", ""),
+                        progress=body.get("progress"), note=body.get("note"),
+                    )
+            self.send_json(201 if path == "/api/plans" else 200, {"plan": updated})
         except (ValueError, KeyError, TypeError, json.JSONDecodeError) as exc:
             self.send_json(400, {"error": str(exc)})
         except Exception:

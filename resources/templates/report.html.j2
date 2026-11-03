@@ -41,8 +41,9 @@
     .meta { display:flex; gap:10px; align-items:center; flex-wrap:wrap; color:var(--muted); font-size:12px; margin-top:16px; }
     .meta a { font-weight:650; }
     .more-row { margin-top:14px; text-align:center; }
-    .more-button, .plan-actions button, .dialog-actions button { border:1px solid #bed5eb; background:#fff; color:var(--blue); border-radius:9px; padding:8px 15px; font:700 13px "Segoe UI","Microsoft YaHei UI",sans-serif; cursor:pointer; }
-    .more-button:hover, .plan-actions button:hover, .dialog-actions button:hover { background:#eef6ff; }
+    .more-button, .plan-actions button, .dialog-actions button, .add-plan-button { border:1px solid #bed5eb; background:#fff; color:var(--blue); border-radius:9px; padding:8px 15px; font:700 13px "Segoe UI","Microsoft YaHei UI",sans-serif; cursor:pointer; }
+    .more-button:hover, .plan-actions button:hover, .dialog-actions button:hover, .add-plan-button:hover { background:#eef6ff; }
+    .add-plan-button { margin-left:auto; white-space:nowrap; }
     .plan-actions button:disabled { opacity:.45; cursor:default; }
     .market-panel { background:var(--white); border:1px solid var(--line); border-radius:18px; box-shadow:var(--shadow); overflow:hidden; }
     .market-toolbar { display:flex; align-items:center; gap:16px; flex-wrap:wrap; padding:17px 20px; border-bottom:1px solid var(--line); }
@@ -117,7 +118,7 @@
     <div class="plan {% if plan.done %}done{% endif %}" data-plan-id="{{ plan.id }}"><div class="plan-title">{{ plan.title }}</div><div class="plan-status">{{ plan.status }}{% if plan.due %} · 截止 {{ plan.due }}{% endif %} · {{ plan.source }}</div><div class="plan-progress"><span style="width:{{ plan.progress }}%"></span></div><p class="plan-note">{{ plan.note }}</p><div class="plan-actions"><button type="button" class="complete" data-action="complete" {% if plan.done %}disabled{% endif %}>{{ '已完成' if plan.done else '完成' }}</button><button type="button" data-action="progress" {% if plan.done %}disabled{% endif %}>更新进度</button></div></div>
     {%- endmacro %}
     <section id="plans">
-      <div class="section-heading"><h2>Plans</h2><p>今日计划提醒</p></div>
+      <div class="section-heading"><h2>Plans</h2><p>今日计划提醒</p><button type="button" class="add-plan-button" id="add-plan-button">＋ 添加计划</button></div>
       {% set completed_count = plans|selectattr('done')|list|length %}
       <div class="plans-card"><div id="plan-service-status" class="service-status" role="status" aria-live="polite"></div>
         <div class="plans-grid" id="pending-plans-grid">{% for plan in plans if not plan.done %}{{ plan_card(plan) }}{% endfor %}</div>
@@ -208,6 +209,7 @@
     </section>
 
     <dialog id="progress-dialog"><h3>更新计划进度</h3><div id="progress-title"></div><label for="progress-value">完成进度（0–100%）</label><input id="progress-value" type="number" min="0" max="100" step="1"><label for="progress-note">进展备注</label><textarea id="progress-note" maxlength="500" placeholder="记录下一步或已完成的部分"></textarea><div class="dialog-actions"><button type="button" id="progress-cancel">取消</button><button type="button" id="progress-save">保存进度</button></div></dialog>
+    <dialog id="add-plan-dialog"><h3>添加计划</h3><label for="new-plan-title">计划名称</label><input id="new-plan-title" type="text" maxlength="200" required placeholder="输入计划名称"><label for="new-plan-due">截止日期（可选）</label><input id="new-plan-due" type="date"><p id="add-plan-error" class="service-status" role="alert" hidden></p><div class="dialog-actions"><button type="button" id="add-plan-cancel">取消</button><button type="button" id="add-plan-save">保存计划</button></div></dialog>
     <footer>Daily · {{ generated_at }} · 行情按各标的 Yahoo Finance 时间戳展示</footer>
   </main>
   <script>
@@ -239,9 +241,17 @@
       document.getElementById('no-pending-plans').hidden = pendingPlans.querySelector('[data-plan-id]') !== null;
     }
     function updatePlanCard(plan) {
-      const card = [...document.querySelectorAll('[data-plan-id]')].find(node => node.dataset.planId === plan.id);
-      if (!card) return;
+      let card = [...document.querySelectorAll('[data-plan-id]')].find(node => node.dataset.planId === plan.id);
+      if (!card) {
+        card = document.createElement('div');
+        card.className = 'plan';
+        card.dataset.planId = plan.id;
+        card.innerHTML = '<div class="plan-title"></div><div class="plan-status"></div><div class="plan-progress"><span></span></div><p class="plan-note"></p><div class="plan-actions"><button type="button" class="complete" data-action="complete">完成</button><button type="button" data-action="progress">更新进度</button></div>';
+        (plan.done ? completedPlans : pendingPlans).append(card);
+        bindPlanCard(card);
+      }
       card.classList.toggle('done', plan.done);
+      card.querySelector('.plan-title').textContent = plan.title;
       card.querySelector('.plan-status').textContent = `${plan.status}${plan.due ? ' · 截止 ' + plan.due : ''} · ${plan.source}`;
       card.querySelector('.plan-progress span').style.width = `${plan.progress}%`;
       card.querySelector('.plan-note').textContent = plan.note || '';
@@ -262,7 +272,7 @@
       if (!response.ok) throw new Error(data.error || '计划更新失败');
       return data;
     }
-    document.querySelectorAll('[data-plan-id]').forEach(card => {
+    function bindPlanCard(card) {
       card.dataset.progress = card.querySelector('.plan-progress span').style.width.replace('%', '') || '0';
       card.dataset.note = card.querySelector('.plan-note').textContent;
       card.querySelector('[data-action="complete"]').addEventListener('click', async () => {
@@ -279,7 +289,8 @@
         document.getElementById('progress-note').value = card.dataset.note;
         dialog.showModal();
       });
-    });
+    }
+    document.querySelectorAll('[data-plan-id]').forEach(bindPlanCard);
     document.getElementById('progress-cancel').addEventListener('click', () => dialog.close());
     document.getElementById('progress-save').addEventListener('click', async () => {
       const progress = Number(document.getElementById('progress-value').value);
@@ -289,6 +300,36 @@
         const result = await planRequest('/api/plans/' + editingPlanId, { method: 'POST', body: JSON.stringify({ action: 'progress', progress, note }) });
         updatePlanCard(result.plan); planStatus.textContent = ''; dialog.close();
       } catch (error) { planStatus.textContent = error.message + '。请确认本机计划服务正在运行。'; dialog.close(); }
+    });
+    const addDialog = document.getElementById('add-plan-dialog');
+    const addError = document.getElementById('add-plan-error');
+    document.getElementById('add-plan-button').addEventListener('click', () => {
+      document.getElementById('new-plan-title').value = '';
+      document.getElementById('new-plan-due').value = '';
+      addError.hidden = true;
+      addDialog.showModal();
+      document.getElementById('new-plan-title').focus();
+    });
+    document.getElementById('add-plan-cancel').addEventListener('click', () => addDialog.close());
+    document.getElementById('add-plan-save').addEventListener('click', async () => {
+      const title = document.getElementById('new-plan-title').value.trim();
+      const due = document.getElementById('new-plan-due').value || null;
+      if (!title || title.length > 200 || /[\r\n<>]/.test(title)) {
+        addError.textContent = '计划名称须为 1–200 个字符，且不能包含换行或尖括号。';
+        addError.hidden = false;
+        return;
+      }
+      const saveButton = document.getElementById('add-plan-save');
+      saveButton.disabled = true;
+      try {
+        const result = await planRequest('/api/plans', { method: 'POST', body: JSON.stringify({ title, due }) });
+        updatePlanCard(result.plan);
+        planStatus.textContent = '';
+        addDialog.close();
+      } catch (error) {
+        addError.textContent = error.message + '。请确认本机计划服务正在运行。';
+        addError.hidden = false;
+      } finally { saveButton.disabled = false; }
     });
     planRequest('/api/plans').then(data => data.plans.forEach(updatePlanCard)).catch(() => { planStatus.textContent = '计划服务未连接。完成与进度按钮需要本机计划服务运行。'; });
   </script>
